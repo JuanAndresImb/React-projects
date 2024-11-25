@@ -1,17 +1,25 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+
 import confetti from "canvas-confetti"
 
 import { Square } from "./components/Square.jsx"
 import { TURNS } from "./components/Constants.jsx"
-import { checkWinnerFrom } from "./Logic/board.js"
+import { checkWinnerFrom, checkEndGame } from "./Logic/board.js"
 import { WinnerModal } from "./components/WinnerModal.jsx"
+import { saveGameToStorage, resetGameStorage } from "./Logic/storage/index.js"
 
 function App() {
 
-  const [board, setBoard] = useState(
-  Array(9).fill(null)
-  )
-  const [turn, setTurn] = useState(TURNS.X)
+  const [board, setBoard] = useState(() => {
+    const boardFromStorage = window.localStorage.getItem('board')
+    if (boardFromStorage) return JSON.parse(boardFromStorage)
+    return Array(9).fill(null)
+  })
+
+  const [turn, setTurn] = useState(() => {
+    const turnFromStorage = window.localStorage.getItem('turn')
+    return turnFromStorage ?? TURNS.X
+  })
 
   const [winner, setWinner] = useState(null)
 
@@ -20,12 +28,12 @@ function App() {
     setBoard(Array(9).fill(null))
     setTurn(TURNS.X)
     setWinner(null)
-    
+
+    resetGameStorage()
   }
+
   //updateBoard function is going to be passed as a prop to the square component
-  const checkEndGame = (newBoard) => {
-    return newBoard.every((square) => square === null)
-  }
+  
   const updateBoard = (index) => {
     if (board[index]) return
     const newBoard = [...board]
@@ -36,6 +44,10 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
     setTurn(newTurn)
     //checking for a winner 
+    saveGameToStorage({
+      board: newBoard,
+      turn: newTurn
+    })
     const newWinner = checkWinnerFrom(newBoard)
     if (newWinner) {
       setWinner(newWinner)
@@ -44,7 +56,10 @@ function App() {
       setWinner(false)
     }
   }
- 
+  useEffect(() => {
+    console.log('useEffect')
+  }, [winner]
+  )
   return (
   <main className='board'>
       <h1> Tic Tac Toe</h1>

@@ -13,4 +13,7 @@ export const checkWinnerFrom = (boardToCheck) => {
     }
     return null
 }
-  
+export const checkEndGame = (newBoard) => {
+    //if there is a null value in the board, the game is not over
+    return newBoard.every((square) => square === null)
+  }
